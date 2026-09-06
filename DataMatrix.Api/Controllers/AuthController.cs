@@ -35,6 +35,7 @@ public class AuthController : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
     {
         if (string.IsNullOrEmpty(request.Password))
@@ -72,6 +73,7 @@ public class AuthController : ControllerBase
     /// <param name="ct"></param>
     /// <returns></returns>
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(request.Password) ||

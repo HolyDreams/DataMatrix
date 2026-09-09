@@ -1,0 +1,18 @@
+@import "shared.scss";
+
+html, body, #global-wrapper {
+    @extend .full-size;
+}
+
+#global-wrapper {
+    @extend .flex-vertical;
+}
+
+body {
+    margin: 0;
+}
+
+header {
+    border-bottom: 1px solid $gray-light-color;
+    padding-bottom: 10px;
+}

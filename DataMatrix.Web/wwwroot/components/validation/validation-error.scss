@@ -1,0 +1,35 @@
+@import "../../styles/colors.scss";
+
+.vw-validation-error {
+    position: absolute;
+    color: $red-color;
+    font-size: 11px;
+    margin-top: 2px;
+    text-wrap-mode: no-wrap;
+}
+
+.vw-validation-error.warning {
+    color: $red-color;
+}
+
+@keyframes validation-error-blinking {
+    0% {
+        background-color: $red-color;
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+.vw-invalid-area {
+    .vw-textbox-input, .vw-combobox-input {
+        animation: validation-error-blinking .25s ease-out;
+        animation-fill-mode: forwards;
+        border: 2px solid $red-color;
+    }
+
+    .vw-textbox-icon {
+        filter: invert(39%) sepia(85%) saturate(3872%) hue-rotate(331deg) brightness(105%) contrast(101%);
+    }
+}

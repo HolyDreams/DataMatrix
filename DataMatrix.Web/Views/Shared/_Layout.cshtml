@@ -1,0 +1,28 @@
+﻿@{
+    Layout = "BaseLayout";
+}
+
+@section Scripts
+{
+    @RenderSection("Scripts", false)
+}
+@section ModalWindows
+{
+    @RenderSection("ModalWindows", false)
+}
+
+<div id="profile-page-wrapper" class="flex full-size hidden-overflow">
+    <div id="main-part-wrapper" class="flex-vertical stretched-flex-item">
+        <div id="header-wrapper">
+            <partial name="_Header" />
+        </div>
+        <main class="stretched-flex-item scrollable">
+            <div id="profile-content-wrapper" class="full-size">
+                @RenderBody()
+            </div>
+        </main>
+        <div id="footer-wrapper">
+            <partial name="_Footer" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,9 @@
+@import "../../styles/colors.scss";
+
+.vw-popup {
+    z-index: 1000;
+    border: 1px solid $black-color;
+    position: absolute;
+    background-color: $almost-white-color;
+    width: auto;
+}

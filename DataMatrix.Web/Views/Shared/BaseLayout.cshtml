@@ -1,0 +1,19 @@
+﻿@using DataMatrix.Web.Extensions
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="~/favicon.ico.png" type="image/png" sizes="16x16" />
+    @Html.RenderScript("styles")
+    @Html.RenderScript("components")
+    <title>@ViewData["Title"] - Распознавание документов</title>
+</head>
+<body>
+    <div id="global-wrapper">
+        @RenderSection("ModalWindows", false)
+        @RenderBody()
+    </div>
+    @RenderSection("Scripts", false)
+</body>
+</html>

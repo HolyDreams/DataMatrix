@@ -1,0 +1,182 @@
+@import "layout.scss";
+
+#model-data {
+    display: none
+}
+
+.header-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: $active-component-color;
+    padding: 4px 0 0 15px;
+}
+
+.login-input, .password-input {
+    width: 400px;
+    margin: 15px 0 15px 0
+}
+
+.password-input {
+    .password-show-toggler {
+        width: 35px;
+        color: $gray-light-color;
+    }
+}
+
+.login-title {
+    @extend .centerer;
+    font-size: 40px;
+    color: $active-component-color;
+    padding-bottom: 50px;
+    font-weight: bold;
+}
+
+.role-selector {
+    height: 300px;
+}
+
+.login-buttons {
+    width: 500px;
+}
+
+.button {
+    @extend .centerer;
+    border-radius: 4px;
+    border: 1px solid $gray-light-color;
+    color: $active-component-color;
+    background-color: $white-color;
+    width: 100px;
+    height: 30px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.button:hover {
+    border: 2px solid $active-component-color;
+    background-color: $active-component-color;
+    color: $white-color;
+}
+
+.button:disabled {
+    color: $gray-light-color;
+    border: 2px solid $gray-light-color;
+}
+
+.button:disabled:hover {
+    border: 2px solid $gray-light-color;
+    background-color: $gray-light-color;
+    color: $white-color;
+}
+
+.login-button {
+    @extend .button;
+    width: 200px;
+    height: 40px;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.role-selector {
+    padding: 10px 0 10px 0;
+
+    .title {
+        @extend .centerer;
+        font-size: 20px;
+        font-weight: bold;
+        color: $active-component-color;
+        padding-bottom: 5px;
+    }
+}
+
+.roles {
+    width: 200px;
+    height: 30px;
+    padding-left: 45px;
+}
+
+.exit-button {
+    @extend .button;
+    margin: 10px 10px 0 0;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.create-button {
+    @extend .button;
+    margin: 5px 0 5px 10px;
+    font-size: 15px;
+    width: 200px;
+}
+
+.codes-table {
+    border-collapse: collapse;
+    width: 100%;
+
+    th, td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid $gray-light-color;
+    }
+
+    .code-table-row {
+        cursor: pointer;
+    }
+
+    .code-table-row:hover td {
+        border-top: 1px solid $active-component-color;
+        border-bottom: 1px solid $active-component-color;
+    }
+
+    .code-table-row:hover td:first-child {
+        border-left: 1px solid $active-component-color;
+    }
+
+    .code-table-row:hover td:last-child {
+        border-right: 1px solid $active-component-color;
+    }
+
+    thead th {
+        position: relative;
+        border-bottom: 2px solid $gray-color;
+        font-weight: bold;
+
+        &:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            bottom: 20%;
+            right: 0;
+            width: 2px;
+            background-color: $gray-color;
+            border-radius: 4px;
+        }
+    }
+
+    .text-center {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 22px;
+        color: $gray-color;
+    }
+}
+
+.message-text {
+    padding: 40px;
+    font-size: 18px;
+}
+
+.code-modal-body {
+    padding: 50px;
+}
+
+.code-image {
+    min-width: 200px;
+    min-height: 200px;
+    max-width: 1000px;
+    max-height: 1000px;
+}
+
+.code-download-button {
+    @extend .button;
+
+    margin-top: 40px;
+}

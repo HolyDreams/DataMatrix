@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="DataMatrix.Api/DataMatrix.Api.csproj" />
+  <Project Path="DataMatrix.Web/DataMatrix.Web.csproj" Id="a9b278fb-6a1f-45dc-81e5-317550d14c70" />
 </Solution>

@@ -1,0 +1,126 @@
+﻿@using DataMatrix.Web.Controllers.Home.Models
+@using DataMatrix.Web.Extensions
+@model HomeViewModel
+@{
+    Layout = "_Layout";
+}
+@section Scripts {
+    <div id="model-data">@Html.Raw(Model.ToJson())</div>
+
+    @Html.RenderScript("home")
+}
+
+@section ModalWindows {
+    <div class="home-modals">
+        <modal-window header="Ошибка" class="error-modal" ref="error-modal" :can-close="true" @@closed="closeErrorModal">
+            <div class="message-text">
+                {{ errorMessage }}
+            </div>
+        </modal-window>
+        <modal-window header="Успех" class="success-modal" ref="success-modal" :can-close="true" @@closed="closeSuccessModal">
+            <div class="message-text">
+                {{ successMessage }}
+            </div>
+        </modal-window>
+        <modal-window header="Код" class="code-modal" ref="code-modal" :can-close="true" @@closed="closeImageModal">
+            <div class="code-modal-body">
+                <img :src="image" class="code-image" />
+                <div class="code-modal-buttons centerer">
+                    <button class="code-download-button" @@click="downloadImage">Скачать</button>
+                </div>
+            </div>
+        </modal-window>
+    </div>
+}
+<div class="full-size">
+    <div v-if="!isAuthorized" class="centerer full-size">
+        <div class="centerer flex-vertical full-size">
+            <div>
+                <div>
+                    <div class="login-title">
+                        <label v-if="isRegister">Регистрация</label>
+                        <label v-else>Вход</label>
+                    </div>
+                    <div class="centerer">
+                        <textbox :label="'Логин'"
+                                 class="login-input"
+                                 :name="'login-input'"
+                                 id="login-input"
+                                 :value="login"
+                                 :rules="loginRules()"
+                                 ref="login-input"
+                        @@valid-change="loginIsValid = $event"
+                        @@input="login = $event" />
+                    </div>
+                    <div class="centerer">
+                        <textbox :label="'Пароль'"
+                                 class="password-input"
+                                 :name="'password-input'"
+                                 id="password-input"
+                                 :value="password"
+                                 input-mode="password"
+                                 :show-password-toggle="true"
+                                 validate-on-blue
+                                 :rules="passwordRules()"
+                                 ref="password-input"
+                        @@valid-change="passwordIsValid = $event"
+                        @@input="password = $event" />
+                    </div>
+                    <div class="role-selector">
+                        <div v-if="isRegister">
+                            <div class="title">
+                                Выберите роли аккаунта
+                            </div>
+                            <div v-for="role in checkedRoles" class="roles">
+                                <input type="checkbox" :value="role.isChecked" @@change="role.isChecked = $event.target.checked" />
+                                <label>{{ role.title }}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="login-buttons space-between-flex-container flex">
+                    <button v-if="isRegister" class="flex login-button" :disabled="!registerButtonIsEnabled" @@click="submitRegister">Зарегистрироваться</button>
+                    <button v-if="isRegister" class="login-button flex-reversed" @@click="cancelRegister">Отмена</button>
+                    <button v-if="!isRegister" class="flex login-button" :disabled="!loginButtonIsEnabled" @@click="submitLogin">Войти</button>
+                    <button v-if="!isRegister" class="login-button flex-reversed" @@click="moveToRegister">Регистрация</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div v-else class="full-size">
+        <div class="flex full-width">
+            <button class="create-button" @@click="createImage">Создать новый код</button>
+        </div>
+        <div class="flex-vertical full-width">
+            <table class="codes-table full-width">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Id</th>
+                        <th style="width: 40%;">Код</th>
+                        <th>Автор</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-if="!codes.length">
+                        <td :colspan="3" class="text-center">
+                            Записей не найдено.
+                        </td>
+                    </tr>
+                    <tr v-else v-for="code in codes" class="code-table-row" @@click="setImage(code.id)">
+                        <td>{{ code.id }}</td>
+                        <td>{{ code.code }}</td>
+                        <td>{{ code.author }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="space-between-flex-container flex">
+                <div class="flex-reversed full-width" style="padding: 10px 100px 10px 0;">
+                    <pager :current-page="currentPage"
+                           :max-page="totalPages"
+                           @@page-change="goToPage" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

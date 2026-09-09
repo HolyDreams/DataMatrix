@@ -1,0 +1,71 @@
+@import "../../styles/colors.scss";
+
+.vw-textbox {
+    height: 40px;
+    position: relative;
+}
+
+.vw-textbox-icon {
+    position: absolute;
+    pointer-events: none;
+    margin-left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.vw-textbox-label {
+    position: absolute;
+    pointer-events: none;
+    color: $black-color;
+    margin-left: 45px;
+    transition: margin-left 0.25s ease-in, font-size 0.25s ease-in, margin-top 0.25s ease-in;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: $white-color;
+}
+
+.vw-textbox.no-icon .vw-textbox-label {
+    margin-left: 13px;
+}
+
+.vw-textbox.no-icon .vw-textbox-input {
+    text-indent: 13px;
+}
+
+.vw-textbox.no-icon .vw-textbox-input:focus, .vw-textbox.no-icon:hover .vw-textbox-input {
+    text-indent: 12px;
+}
+
+.vw-textbox-label.on-top {
+    font-size: 80%;
+    margin-top: -1.6em;
+    margin-left: 10px;
+    transition: all 0.25s ease-out;
+}
+
+.vw-textbox-input {
+    display: block;
+    border: 1px solid $black-color;
+    border-radius: 6px;
+    font: inherit;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    text-indent: 45px;
+}
+
+.vw-textbox:hover .vw-textbox-input, .vw-textbox-input:focus {
+    text-indent: 44px;
+}
+
+.vw-textbox:hover .vw-textbox-input:not(.disabled), .vw-textbox-input:focus:not(.disabled) {
+    border: 2px solid $active-component-color;
+}
+
+.vw-textbox:hover .vw-textbox-input:disabled, .vw-textbox-input:focus:disabled {
+    border: 2px solid $gray-color;
+}
+
+input[type="date"]::-webkit-inner-spin-button {
+    display: none;
+}

@@ -1,5 +1,6 @@
 using DataMatrix.Web.Controllers.Home.Models;
 using DataMatrix.Web.HttpClients.Interfaces;
+using DataMatrix.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Reflection.Metadata.Ecma335;
@@ -10,13 +11,15 @@ namespace DataMatrix.Web.Controllers.Home
     public class HomeController : Controller
     {
         private readonly IApiHttpClient _apiHttpClient;
+        private readonly IFileService _fileService;
         private readonly ILogger<HomeController> _logger;
         private const string CookieName = "AuthToken";
         private const int PageSize = 10;
 
-        public HomeController(IApiHttpClient apiHttpClient, ILogger<HomeController> logger)
+        public HomeController(IApiHttpClient apiHttpClient, IFileService fileService, ILogger<HomeController> logger)
         {
             _apiHttpClient = apiHttpClient ?? throw new ArgumentNullException(nameof(apiHttpClient));
+            _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -45,6 +48,13 @@ namespace DataMatrix.Web.Controllers.Home
                 Response.Cookies.Append(CookieName, authResult, new CookieOptions() { Expires = expires });
                 return Ok();
             }
+            catch (HttpRequestException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    return Unauthorized();
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
@@ -61,6 +71,12 @@ namespace DataMatrix.Web.Controllers.Home
                 var expires = GetExpires(authResult);
                 Response.Cookies.Append(CookieName, authResult, new CookieOptions() { Expires = expires });
                 return Ok();
+            }
+            catch (HttpRequestException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    return Unauthorized();
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -155,7 +171,7 @@ namespace DataMatrix.Web.Controllers.Home
 
             try
             {
-                var file = await _apiHttpClient.Download(id, cookie);
+                var file = await _fileService.GetFile(id, cookie!);
                 if (file is null)
                     return NotFound();
                 return File(file.Content, "image/png", "barcode.png");

@@ -1,6 +1,7 @@
 using DataMatrix.Web.Extensions;
 using DataMatrix.Web.HttpClients.Interfaces;
 using DataMatrix.Web.Models.Settings;
+using DataMatrix.Web.Services;
 using DataMatrix.Web.Workers;
 using NLog;
 using NLog.Extensions.Logging;
@@ -25,6 +26,7 @@ try
     services.AddSingleton(appSettings.CleanupWorkerSettings);
 
     services.AddHttps();
+    services.AddScoped<IFileService, FileService>();
     services.AddHostedService<CleanupWorker>();
     services.AddNLog();
 

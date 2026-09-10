@@ -114,7 +114,12 @@ document.addEventListener('DOMContentLoaded',
                         data.goToPage();
                     }).catch(function (error) {
                         console.error(error);
-                        data.showErrorMessage('Неизвестная ошибка при регистрации.');
+                        if (error.response && error.response.status === 401) {
+                            data.showErrorMessage("Пользователь с таким логином уже существует.");
+                        }
+                        else {
+                            data.showErrorMessage('Неизвестная ошибка при регистрации.');
+                        }
                         data.isAuthorized = false;
                     });
                 },
@@ -258,9 +263,13 @@ document.addEventListener('DOMContentLoaded',
                 },
                 moveToRegister() {
                     this.isRegister = true;
+                    this.login = '';
+                    this.password = '';
                 },
                 cancelRegister() {
                     this.isRegister = false;
+                    this.login = '';
+                    this.password = '';
                 },
                 showErrorMessage(message) {
                     var data = this;

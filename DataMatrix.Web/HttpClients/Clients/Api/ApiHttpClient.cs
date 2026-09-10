@@ -24,9 +24,9 @@ namespace DataMatrix.Web.HttpClients.Clients.Api
             var request = new LoginRequestDTO(login, password);
 
             var response = await client.PostAsJsonAsync("auth/login", request);
-            var respContent = await response.Content.ReadFromJsonAsync<LoginResponseDTO>();
+            var respString = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
-                throw new HttpRequestException(string.Join("\r\n", respContent!.Errors ?? []), null, response.StatusCode);
+                throw new HttpRequestException(respString, null, response.StatusCode);
 
             return GetCookie(response);
         }
@@ -46,7 +46,11 @@ namespace DataMatrix.Web.HttpClients.Clients.Api
             var response = await client.PostAsJsonAsync("auth/register", registerRequest);
             var respContent = await response.Content.ReadFromJsonAsync<RegisterResponseDTO>();
             if (!response.IsSuccessStatusCode)
+            {
+                if (respContent?.Errors?.Any(r => r.Contains("is already taken")) ?? false)
+                    throw new HttpRequestException("Username already exist", null, System.Net.HttpStatusCode.Unauthorized);
                 throw new HttpRequestException(string.Join("\r\n", respContent?.Errors ?? []), null, response.StatusCode);
+            }
 
             return GetCookie(response);
         }
@@ -84,7 +88,7 @@ namespace DataMatrix.Web.HttpClients.Clients.Api
                 throw new HttpRequestException(await response.Content.ReadAsStringAsync(), null, response.StatusCode);
 
             using var downloadStream = await response.Content.ReadAsStreamAsync();
-            return new FileModel(_fileSettings.Directory, downloadStream);
+            return new FileModel(_fileSettings.Directory, id, downloadStream, true);
         }
 
         private HttpClient GetHttpClient(string cookie = "")

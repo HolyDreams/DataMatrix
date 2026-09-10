@@ -2,6 +2,7 @@ using System.Reflection;
 using DataMatrix.Api.DAL;
 using DataMatrix.Api.Models;
 using DataMatrix.Api.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 
@@ -44,4 +45,13 @@ app.UseSwaggerUI(c =>
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+    foreach (var roleName in new[] { "Viewer", "Creator" })
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+            await roleManager.CreateAsync(new Role { Name = roleName });
+    }
+}
 app.Run();

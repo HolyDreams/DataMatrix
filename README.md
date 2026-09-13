@@ -9,6 +9,7 @@
 - `AppSettings.ApiHttpClientSettings.BaseAddress` - Адрес до апи
 - `AppSettings.ApiHttpClientSettings.MaxTimeout` - Максимальное время на ожидание ответа
 - `AppSettings.FileSettings.Directory` - Временная папка, в которой будут хранится файлы кодов
+- `AppSettings.FileSettings.AlwaysDownloadFile` - Флаг означающий, нужно ли каждый раз скачивать файл с апи, а не проверять на наличие внутри сервера
 - `AppSettings.CleanupWorkerSettings.DoWorkDelay` - Делей между запусками работы воркера
 - `AppSettings.CleanupWorkerSettings.FileLastUpdate` - Сколько прошло времени, с момента его обновления, для его удаления
 

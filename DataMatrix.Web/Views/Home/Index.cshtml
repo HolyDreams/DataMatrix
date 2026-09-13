@@ -90,9 +90,9 @@
     </div>
     <div v-else class="full-size">
         <div class="flex full-width">
-            <button class="create-button" @@click="createImage">Создать новый код</button>
+            <button class="create-button" @@click="createImage" :disabled="!userIsCreator">Создать новый код</button>
         </div>
-        <div class="flex-vertical full-width">
+        <div v-if="userIsViewer" class="flex-vertical full-width">
             <table class="codes-table full-width">
                 <thead>
                     <tr>
@@ -120,6 +120,11 @@
                            :max-page="totalPages"
                            @@page-change="goToPage" />
                 </div>
+            </div>
+        </div>
+        <div v-else class="flex-vertical full-width unavaible-table">
+            <div class="centerer">
+                У вас недостаточно прав для просмотра страницы.
             </div>
         </div>
     </div>

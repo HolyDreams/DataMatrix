@@ -1,6 +1,7 @@
 ﻿using DataMatrix.Web.HttpClients.Interfaces;
 using DataMatrix.Web.Models;
 using DataMatrix.Web.Models.Settings;
+using DataMatrix.Web.Services.Interfaces;
 
 namespace DataMatrix.Web.Services
 {
@@ -15,13 +16,13 @@ namespace DataMatrix.Web.Services
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
-        public async Task<FileModel> GetFile(int id, string cookie)
+        public async Task<FileModel> GetFile(int id)
         {
             var path = Path.Combine(_settings.Directory, id + ".png");
             if (!_settings.AlwaysDownloadFile && TryGetFile(path, out var res) && res is not null)
                 return res;
 
-            return await _apiHttpClient.Download(id, cookie);
+            return await _apiHttpClient.Download(id);
         }
 
         private bool TryGetFile(string path, out FileModel? model)

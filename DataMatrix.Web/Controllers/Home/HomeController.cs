@@ -1,9 +1,12 @@
 using DataMatrix.Web.Controllers.Home.Models;
+using DataMatrix.Web.Enums;
 using DataMatrix.Web.HttpClients.Interfaces;
-using DataMatrix.Web.Services;
+using DataMatrix.Web.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Reflection.Metadata.Ecma335;
+using System.Security.Claims;
 
 namespace DataMatrix.Web.Controllers.Home
 {
@@ -12,48 +15,58 @@ namespace DataMatrix.Web.Controllers.Home
     {
         private readonly IApiHttpClient _apiHttpClient;
         private readonly IFileService _fileService;
+        private readonly ISecurityService _securityService;
         private readonly ILogger<HomeController> _logger;
-        private const string CookieName = "AuthToken";
         private const int PageSize = 10;
 
-        public HomeController(IApiHttpClient apiHttpClient, IFileService fileService, ILogger<HomeController> logger)
+        public HomeController(IApiHttpClient apiHttpClient, IFileService fileService, ISecurityService securityService, ILogger<HomeController> logger)
         {
             _apiHttpClient = apiHttpClient ?? throw new ArgumentNullException(nameof(apiHttpClient));
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+            _securityService = securityService ?? throw new ArgumentNullException(nameof(securityService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-
+        [AllowAnonymous]
         [HttpGet]
         [HttpGet("~/")]
         public async Task<IActionResult> Index()
         {
             var model = new HomeViewModel();
-            var cookie = Request.Cookies[CookieName];
-            if (!string.IsNullOrWhiteSpace(cookie))
+            var user = User;
+            if (user.Identities.First().IsAuthenticated)
+            {
                 model.IsAuthorized = true;
+                model.UserRoles = [.. User.Claims
+                                          .Where(c => c.Type == ClaimTypes.Role)
+                                          .Select(c => Roles.ToRole(c.Value).ToString())];
+            }
             else
                 model.IsAuthorized = false;
 
             return View(model);
         }
 
+        [AllowAnonymous]
         [HttpPost("auth")]
         public async Task<ActionResult<HomeViewModel>> Login([FromBody] LoginRequest request)
         {
             try
             {
-                var authResult = await _apiHttpClient.AuthAsync(request.Login, request.Password);
-                var expires = GetExpires(authResult);
-                Response.Cookies.Append(CookieName, authResult, new CookieOptions() { Expires = expires });
-                return Ok();
-            }
-            catch (HttpRequestException ex)
-            {
-                if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                var authResult = await _securityService.Auth(Request.HttpContext, request.Login, request.Password);
+                if (authResult.IsSuccess)
+                {
+                    var model = new HomeViewModel()
+                    {
+                        UserRoles = [.. authResult.Roles.Select(role => role.ToString())]
+                    };
+
+                    return Ok(model);
+                }
+
+                if (authResult.ResponseCode == System.Net.HttpStatusCode.Unauthorized)
                     return Unauthorized();
-                _logger.LogError(ex.Message);
-                return BadRequest(ex.Message);
+                return BadRequest(authResult.ErrorMessage);
             }
             catch (Exception ex)
             {
@@ -62,21 +75,27 @@ namespace DataMatrix.Web.Controllers.Home
             }
         }
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult<HomeViewModel>> Register([FromBody] RegisterRequest request)
         {
             try
             {
-                var authResult = await _apiHttpClient.RegisterAsync(request.Login, request.Password, [.. request.Roles]);
-                var expires = GetExpires(authResult);
-                Response.Cookies.Append(CookieName, authResult, new CookieOptions() { Expires = expires });
-                return Ok();
-            }
-            catch (HttpRequestException ex)
-            {
-                if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                var registerResult = await _securityService.Register(Request.HttpContext, request.Login, request.Password, request.Roles);
+                if (registerResult.IsSuccess)
+                {
+                    var model = new HomeViewModel()
+                    {
+                        UserRoles = [.. registerResult.Roles.Select(role => role.ToString())]
+                    };
+
+                    return Ok(model);
+                }
+
+                if (registerResult.ResponseCode == System.Net.HttpStatusCode.Unauthorized)
                     return Unauthorized();
-                return BadRequest(ex.Message);
+
+                return BadRequest(registerResult.ErrorMessage);
             }
             catch (Exception ex)
             {
@@ -85,51 +104,34 @@ namespace DataMatrix.Web.Controllers.Home
             }
         }
 
+        [AllowAnonymous]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            var model = new HomeViewModel();
-            var cookie = Request.Cookies[CookieName];
-
-            if (string.IsNullOrWhiteSpace(cookie))
-                return Ok(model);
-
             try
             {
-                await _apiHttpClient.LogoutAsync(cookie);
-            }
-            catch (HttpRequestException ex)
-            {
-                if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    Response.Cookies.Delete(CookieName);
-                    return Ok(model);
-                }
-                _logger.LogError(ex.Message);
-                return BadRequest(ex.Message);
+                await _securityService.Logout(Request.HttpContext);
+                return Ok();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
-            Response.Cookies.Delete(CookieName);
-            return Ok(model);
         }
 
+        [Authorize(Roles = Roles.Viewer)]
         [HttpGet("codes/{page}")]
         public async Task<ActionResult<HomeViewModel>> GetCodes([FromRoute] int page = 1)
         {
-            var cookie = Request.Cookies[CookieName];
-            var expires = GetExpires(cookie);
-            if (expires is null || DateTime.Now > expires)
-                return Unauthorized("relogin");
+            var model = new HomeViewModel()
+            {
+                IsAuthorized = true
+            };
 
-            var model = new HomeViewModel();
-            model.IsAuthorized = true;
             try
             {
-                var codes = await _apiHttpClient.GetAllAsync(cookie);
+                var codes = await _apiHttpClient.GetAllAsync();
                 model.IsAuthorized = true;
                 model.CurrentPage = page;
                 model.PageSize = PageSize;
@@ -145,7 +147,6 @@ namespace DataMatrix.Web.Controllers.Home
                 if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
                     model.IsAuthorized = false;
-                    Response.Cookies.Delete(CookieName);
                 }
                 else
                 {
@@ -161,17 +162,13 @@ namespace DataMatrix.Web.Controllers.Home
             return model;
         }
 
+        [Authorize(Roles = Roles.Viewer)]
         [HttpGet("download/{id}")]
         public async Task<IActionResult> Download([FromRoute] int id)
         {
-            var cookie = Request.Cookies[CookieName];
-            var expires = GetExpires(cookie);
-            if (expires is null || DateTime.Now > expires)
-                return Unauthorized("relogin");
-
             try
             {
-                var file = await _fileService.GetFile(id, cookie!);
+                var file = await _fileService.GetFile(id);
                 if (file is null)
                     return NotFound();
                 return File(file.Content, "image/png", "barcode.png");
@@ -194,17 +191,13 @@ namespace DataMatrix.Web.Controllers.Home
             }
         }
 
+        [Authorize(Roles = Roles.Creator)]
         [HttpPost("create")]
         public async Task<IActionResult> Create()
         {
-            var cookie = Request.Cookies[CookieName];
-            var expires = GetExpires(cookie);
-            if (expires is null || DateTime.Now > expires)
-                return Unauthorized("relogin");
-
             try
             {
-                await _apiHttpClient.CreateRandomAsync(cookie);
+                await _apiHttpClient.CreateRandomAsync();
                 return Ok();
             }
             catch (HttpRequestException ex)
@@ -219,14 +212,6 @@ namespace DataMatrix.Web.Controllers.Home
                 _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
-        }
-
-        private DateTime? GetExpires(string? cookie)
-        {
-            if (string.IsNullOrWhiteSpace(cookie))
-                return null;
-            var time = cookie.Split(";").First(s => s.Contains("expires"));
-            return DateTime.TryParse(time.Substring(time.IndexOf(",") + 2), out var date) ? date : null;
         }
     }
 }

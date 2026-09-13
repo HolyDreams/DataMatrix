@@ -26,7 +26,10 @@ namespace DataMatrix.Web.Controllers.Home.Models
 
         public Dictionary<int, string> Roles { get; init; } = Enum.GetValues(typeof(Role))
                                                                 .Cast<Role>()
+                                                                .SkipWhile(r => r == Role.Unknown)
                                                                 .ToDictionary(t => (int)t, t => t.ToString());
+
+        public List<string> UserRoles { get; set; } = [];
 
         public string ToJson() => JsonSerializer.Serialize(this, SerializerSettings);
         

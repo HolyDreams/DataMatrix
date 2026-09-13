@@ -51,7 +51,7 @@ public class AuthController : ControllerBase
 
         await _signInManager.SignInAsync(user, isPersistent: true);
 
-        return Ok(new { message = "Вход выполнен успешно", userId = user.Id });
+        return Ok(new { message = "Вход выполнен успешно", userId = user.Id, roles = await _userManager.GetRolesAsync(user) });
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class AuthController : ControllerBase
 
             await _signInManager.SignInAsync(user, isPersistent: true);
 
-            return Ok(new { message = "Пользователь успешно создан", userId = user.Id });
+            return Ok(new { message = "Пользователь успешно создан", userId = user.Id, roles = await _userManager.GetRolesAsync(user) });
         }
         
         IEnumerable<string> errors = result.Errors.Select(e => e.Description);

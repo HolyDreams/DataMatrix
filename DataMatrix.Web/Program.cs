@@ -1,10 +1,14 @@
 using DataMatrix.Web.Extensions;
-using DataMatrix.Web.HttpClients.Interfaces;
 using DataMatrix.Web.Models.Settings;
 using DataMatrix.Web.Services;
 using DataMatrix.Web.Workers;
 using NLog;
 using NLog.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using DataMatrix.Web.Enums;
+using Microsoft.AspNetCore.Authorization;
+using DataMatrix.Web.Services.Interfaces;
+using System.Net;
 
 
 var logger = LogManager.Setup(build =>
@@ -27,8 +31,35 @@ try
 
     services.AddHttps();
     services.AddScoped<IFileService, FileService>();
+    services.AddScoped<ISecurityService, SecurityService>();
     services.AddHostedService<CleanupWorker>();
     services.AddNLog();
+
+    services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(option =>
+        {
+            option.Cookie.Name = "AuthToken";
+
+            option.Events.OnRedirectToAccessDenied = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            };
+
+            option.Events.OnRedirectToLogin = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            };
+        });
+
+    services.AddAuthorization(options =>
+    {
+        foreach (var role in Enum.GetValues<Role>())
+            options.AddPolicy(role.GetRole(), builder => builder.RequireRole(role.GetRole()));
+    });
+
+    services.AddHttpContextAccessor();
 
     var app = builder.Build();
 
@@ -42,6 +73,8 @@ try
 
     app.UseHttpsRedirection();
     app.UseRouting();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapStaticAssets();
 

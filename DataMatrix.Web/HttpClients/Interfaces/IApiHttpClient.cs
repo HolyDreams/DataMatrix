@@ -6,16 +6,16 @@ namespace DataMatrix.Web.HttpClients.Interfaces
 {
     public interface IApiHttpClient
     {
-        public Task<string> AuthAsync(string login, string password);
+        public Task<ApiAuthResult> AuthAsync(string login, string password);
         
-        public Task<string> RegisterAsync(string login, string password, params Role[] roles);
+        public Task<ApiAuthResult> RegisterAsync(string login, string password, IEnumerable<Role> roles);
 
-        public Task LogoutAsync(string cookie);
+        public Task LogoutAsync();
 
-        public Task CreateRandomAsync(string cookie);
+        public Task CreateRandomAsync();
 
-        public Task<List<CodeDTO>> GetAllAsync(string cookie);
+        public Task<List<CodeDTO>> GetAllAsync();
 
-        public Task<FileModel> Download(int id, string cookie);
+        public Task<FileModel> Download(int id);
     }
 }

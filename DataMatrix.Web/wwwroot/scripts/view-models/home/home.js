@@ -52,6 +52,13 @@ document.addEventListener('DOMContentLoaded',
                         data.password.length > 0 &&
                         data.loginIsValid &&
                         data.passwordIsValid;
+                },
+                userIsViewer() {
+                    return this.userRoles.includes('Viewer');
+                },
+
+                userIsCreator() {
+                    return this.userRoles.includes('Creator');
                 }
             },
             methods: {
@@ -73,6 +80,7 @@ document.addEventListener('DOMContentLoaded',
                         data.password = '';
                         data.isRegister = false;
                         data.isAuthorized = false;
+                        data.userRoles = [];
                         data.clearCheckedRoles();
                         data.showSuccessMessage("Вы успешно вышли из системы.");
                     }).catch(function (error) {
@@ -86,9 +94,12 @@ document.addEventListener('DOMContentLoaded',
                         url: `/home/auth`,
                         method: 'post',
                         data: { login: data.login, password: data.password }
-                    }).then(function () {
+                    }).then(function (response) {
                         data.isRegister = false;
                         data.isAuthorized = true;
+                        data.userRoles = response.data.userRoles;
+                        console.log(data);
+                        console.log(response.data);
                         data.goToPage();
                     }).catch(function (error) {
                         data.isAuthorized = false;
@@ -108,9 +119,10 @@ document.addEventListener('DOMContentLoaded',
                         url: `/home/register`,
                         method: 'post',
                         data: { login: data.login, password: data.password, roles: selectedRoles }
-                    }).then(function () {
+                    }).then(function (response) {
                         data.isRegister = false;
                         data.isAuthorized = true;
+                        data.userRoles = response.data.userRoles;
                         data.goToPage();
                     }).catch(function (error) {
                         console.error(error);
@@ -130,7 +142,7 @@ document.addEventListener('DOMContentLoaded',
                         method: 'post'
                     }).then(function () {
                         data.showSuccessMessage('Код успешно создан');
-                        data.goToPage();
+                        data.goToPage(data.currentPage);
                     }).catch(function (error) {
                         console.error(error);
                         if (error.response) {
@@ -229,7 +241,7 @@ document.addEventListener('DOMContentLoaded',
                                 }
                             }
                             else if (error.response.status === 403) {
-                                data.showErrorMessage("Недостаточно прав для получения кодов.");
+                                return;
                             }
                             else {
                                 data.showErrorMessage('Неизвестная ошибка');
@@ -239,8 +251,6 @@ document.addEventListener('DOMContentLoaded',
                             data.showErrorMessage('Неизвестная ошибка');
                         }
                     });
-
-                    console.log(data);
                 },
                 loginRules() {
                     return [
